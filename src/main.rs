@@ -1,48 +1,56 @@
-use std::env;
+use bevy::prelude::App;
+use bevy::prelude::Commands;
+use bevy::prelude::Component;
+use bevy::prelude::Query;
+use bevy::prelude::With;
 
-use serenity::{
-    async_trait,
-    client::{Context, EventHandler},
-    framework::{
-        standard::{
-            macros::{command, group},
-            CommandResult,
-        },
-        StandardFramework,
-    },
-    model::channel::Message,
-    Client,
-};
+#[derive(Component)]
+struct Entity;
 
-#[group]
-#[commands(ping)]
-struct General;
+#[derive(Component)]
+struct Name(String);
+#[derive(Component)]
+struct Position {
+    x: f32,
+    y: f32,
+}
 
-struct Handler;
+fn main() {
+    App::new()
+        .add_startup_system(populate_entites)
+        .add_system(print_entity_positions)
+        .add_system(print_entity_names)
+        .run()
+}
 
-#[async_trait]
-impl EventHandler for Handler {}
+fn populate_entites(mut commands: Commands) {
+    commands
+        .spawn()
+        .insert(Entity)
+        .insert(Position { x: 0f32, y: 0f32 })
+        .insert(Name("TestEntity".to_string()));
+    commands
+        .spawn()
+        .insert(Entity)
+        .insert(Position { x: 16f32, y: 0f32 });
+    commands
+        .spawn()
+        .insert(Entity)
+        .insert(Position { x: 32f32, y: 0f32 });
+    commands
+        .spawn()
+        .insert(Entity)
+        .insert(Position { x: 48f32, y: 0f32 });
+}
 
-#[tokio::main]
-async fn main() {
-    let framework = StandardFramework::new()
-        .configure(|config| config.prefix("t>"))
-        .group(&GENERAL_GROUP);
-
-    let token = env::var("DISCORD_TOKEN").expect("token");
-    let mut client = Client::builder(token)
-        .event_handler(Handler)
-        .framework(framework)
-        .await
-        .expect("Error Creating Client!");
-
-    if let Err(why) = client.start().await {
-        println!("An error occured while running the client {:?}", why)
+fn print_entity_positions(query: Query<&Position, With<Entity>>) {
+    for position in query.iter() {
+        println!("x: {}, y: {:}", position.x, position.y)
     }
 }
 
-#[command]
-async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
-    msg.reply(ctx, "Pong!").await?;
-    Ok(())
+fn print_entity_names(query: Query<&Name, With<Entity>>) {
+    for name in query.iter() {
+        println!("name: {}", name.0)
+    }
 }

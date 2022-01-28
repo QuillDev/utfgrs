@@ -5,6 +5,9 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[workspace]
+resolver = "2"
+
 [dependencies]
-serenity = {version = "0.10"}
-tokio = {version = "1.16.0", features = ["full"]}
+# tokio async
+bevy = {version = "0.6", features = ["dynamic"]}
